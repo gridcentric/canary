@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+
+# Copyright 2013 GridCentric Inc.
+# All Rights Reserved.
+#
+# Based off of the Gridcentric OpenStack extensions.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+import gettext
+import sys
+import eventlet
+
+eventlet.monkey_patch()
+gettext.install('nova', unicode=1)
+
+from nova import flags
+from nova import service
+from openstack.common import log as logging
+from nova.openstack.common import cfg
+
+if __name__ == '__main__':
+    flags.parse_args(sys.argv)
+    canary_opts = [
+               cfg.StrOpt('canary_manager',
+               default='canary.manager.CanaryManager',
+               help='Manager for canary') ]
+    flags.FLAGS.register_opts(canary_opts)
+
+    logging.setup('nova')
+    server = service.Service.create(binary='nova-canary')
+    service.serve(server)
+    service.wait()

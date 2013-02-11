@@ -33,21 +33,12 @@ canary_api_opts = [
                help='the topic canary nodes listen on') ]
 FLAGS.register_opts(canary_api_opts)
 
-def convert_exception(action):
-    def fn(self, *args, **kwargs):
-        try:
-            return action(self, *args, **kwargs)
-        except NovaException as error:
-            raise exc.HTTPBadRequest(explanation=unicode(error))
-    fn.__name__ = action.__name__
-    fn.__doc__ = action.__doc__
-    return fn
+class CanaryController(wsgi.Controller):
 
-class CanaryController(object):
-
-    @convert_exception
-    def query(self, req, body):
+    @wsgi.action('canary-query')
+    def query(self, req, id, body):
         context = req.environ["nova.context"]
+        authorize(context)
 
         # Extract the host.
         host = body.get('canary', {}).get('host', None)
@@ -59,11 +50,47 @@ class CanaryController(object):
         kwargs = { 'method' : 'query', 'args' : args }
         queue = self.db.queue_get_for(context, FLAGS.canary_topic, host)
         if not(host) or not(queue):
-            return webob.Response(status_int=404)
+            raise webob.exc.HTTPNotFound(explanation=unicode(e))
 
-        # Send it along.
-        result = rpc.call(context, FLAGS.canary_topic, kwargs)
+        try:
+            # Send it along.
+            result = rpc.call(context, FLAGS.canary_topic, kwargs)
+        except Exception, e:
+            raise webob.exc.HTTPBadRequest(explanation=unicode(e))
+
+        # Send the result.
         return webob.Response(status_int=200, body=json.dumps(result))
+
+    @wsgi.action('canary-show')
+    def show(self, req, id, body):
+        context = req.environ["nova.context"]
+        authorize(context)
+
+        # Extract the host.
+        host = body.get('canary', {}).get('host', None)
+
+        # Construct the query.
+        kwargs = { 'method' : 'show', 'args' : {} }
+        queue = self.db.queue_get_for(context, FLAGS.canary_topic, host)
+        if not(host) or not(queue):
+            raise webob.exc.HTTPNotFound(explanation=unicode(e))
+
+        try:
+            # Send it along.
+            result = rpc.call(context, FLAGS.canary_topic, kwargs)
+        except Exception, e:
+            raise webob.exc.HTTPBadRequest(explanation=unicode(e))
+
+        # Send the result.
+        return webob.Response(status_int=200, body=json.dumps(result))
+
+    def get_actions(self):
+        """ Return the actions the extension adds. """
+        return \
+            [
+                extensions.ActionExtension("os-hosts", "canary-query", self.query),
+                extensions.ActionExtension("os-hosts", "canary-show", self.show)
+            ]
 
 class Canary_extension(object):
     """
@@ -72,14 +99,12 @@ class Canary_extension(object):
 
     name = "canary"
     alias = "canary"
-    namespace = "http://www.gridcentric.com"
-    updated = '2012-07-17T13:52:50-07:00' ##TIMESTAMP##
+    namespace = "http://docs.gridcentric.com/openstack/canary/api/v0"
+    updated = '2013-02-08T12:00:00-05:00'
 
     def __init__(self, ext_mgr):
         ext_mgr.register(self)
 
-    def get_resources(self):
-        return [extensions.ResourceExtension('canary', CanaryController())]
-
     def get_controller_extensions(self):
-        return []
+        controller = CanaryController()
+        extension = extensions.ControllerExtension(self, 'os-hosts', controller)

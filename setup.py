@@ -23,4 +23,14 @@ setup(name='canary',
       author='Gridcentric Inc.',
       author_email='support@gridcentric.com',
       url='http://www.gridcentric.com/',
-      packages=['canary'])
+      packages=['canary'],
+      scripts=['bin/canary'],
+      data_files=[('/etc/init', ['etc/init/canary.conf'])])
+
+setup(name='canary_python_novaclient_ext',
+      version='0.1',
+      description='Monitoring tools for Nova hosts.',
+      author='Gridcentric Inc.',
+      author_email='support@gridcentric.com',
+      url='http://www.gridcentric.com/',
+      packages=['canary_python_novaclient_ext'])

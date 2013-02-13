@@ -24,12 +24,12 @@ from nova.openstack.common import cfg
 from nova.openstack.common import log as logging
 from nova import manager
 
-LOG = logging.getLogger('canary.manager')
+LOG = logging.getLogger(__name__)
 FLAGS = flags.FLAGS
 
 canary_opts = [
                cfg.StrOpt('canary_rrdpath',
-               default='/var/lib/collectd/%s' % socket.gethostname(),
+               default='/var/lib/collectd/rrd/%s' % socket.getfqdn(),
                help='The path for available RRD files.'),
               ]
 FLAGS.register_opts(canary_opts)
@@ -42,10 +42,12 @@ class CanaryManager(manager.SchedulerDependentManager):
     def query(self, context, metric, cf='AVERAGE', from_time=None, to_time=None, resolution=None):
         m = re.match("^([^\.\[]+)(\[([^\[]+)\])?\.(.+)$", metric)
         if not m:
-            # Return an error to the user.
-            raise Exception("Unknown metric: should be 'module.name' or 'module[unit].name'.")
+            raise NotImplementedError()
 
-        # File our RRD file.
+        # Find our RRD file.
+        # NOTE: The deconstruction above is symmetric with the construction
+        # below (in info()). There is no real special meaning behind these
+        # constructions, but they should be in sync with each other.
         plugin = m.group(1)
         unit = m.group(3)
         key = m.group(4)
@@ -58,21 +60,22 @@ class CanaryManager(manager.SchedulerDependentManager):
         if from_time:
             cmd.extend(['--start', str(from_time)])
         if to_time:
-            cmd.extend(['--stop', str(to_time)])
+            cmd.extend(['--end', str(to_time)])
         if resolution:
             cmd.extend(['--resolution', str(resolution)])
 
         # Pull our data.
-        data = rrdtool.fetch(cmd)
+        data = rrdtool.fetch(map(str, cmd))
 
         # Format and return.
-        trange = (data[0][0], data[0][1])
+        timestamps = range(data[0][0], data[0][1], data[0][2])
         values = [x[0] for x in data[2]]
-        return { "from_time" : trange[0], "to_time" : trange[1], "values" : values }
+        return zip(timestamps, values)
 
-    def show(self, context):
-        metrics = {}
+    def info(self, context):
         available = glob.glob(os.path.join(FLAGS.canary_rrdpath, '*/*.rrd'))
+        metrics = { }
+
         for filename in available:
             m = re.match("^%s/([^\/-]+)(-([^\/]+))?/([^\.]+)\.rrd$" % FLAGS.canary_rrdpath, filename)
             if m:
@@ -80,22 +83,41 @@ class CanaryManager(manager.SchedulerDependentManager):
                 unit = m.group(3)
                 key = m.group(4)
 
-                if not(plugin in metrics):
-                    metrics[plugin] = { }
+                # NOTE: At this point we construct a metric name that is
+                # equivilant to how we deconstruct the name above. It's 
+                # important that these two operations are symmetric for
+                # the sake of a user's sanity.
                 if unit:
-                    if not(unit in metrics[plugin]):
-                        metrics[plugin][unit] = {}
-                    if not(key in metrics[plugin][unit]):
-                        metrics[plugin][unit][key] = {}
-                    keyinfo = metrics[plugin][unit][key]
+                    metric = "%s[%s].%s" % (plugin, unit, key)
                 else:
-                    if not(key in metrics[plugin]):
-                        metrics[plugin][key] = {}
-                    keyinfo = metrics[plugin][key]
+                    metric = "%s.%s" % (plugin, key)
+                if not(metric in metrics):
+                    metrics[metric] = {}
 
-                # FIXME: At this point, we should be populating 'keyinfo', with
-                # the appropriate information about available CFs, time ranges,
-                # resolutions, etc.
-                pass
+                metrics[metric]["from_time"] = rrdtool.first(filename)
+                metrics[metric]["to_time"] = rrdtool.last(filename)
+
+                step = 1
+                pdps = []
+                cfs = []
+                for (k, v) in rrdtool.info(filename).items():
+                    if re.match("^step$",k):
+                        step = int(v)
+                        continue
+                    elif re.match("^rra\[\d+\]\.pdp_per_row$", k):
+                        pdps.append(int(v))
+                        continue
+                    elif re.match("^rra\[\d+\]\.cf", k):
+                        cfs.append(v)
+                        continue
+
+                pdps = list(set(pdps))
+                cfs = list(set(cfs))
+                cfs.sort()
+                resolutions = map(lambda x: step * x, pdps)
+                resolutions.sort()
+
+                metrics[metric]["cfs"] = cfs
+                metrics[metric]["resolutions"] = resolutions
 
         return metrics

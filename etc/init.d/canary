@@ -1,0 +1,74 @@
+#!/bin/sh
+
+# Note that the basis of the script was taken from the openSUSE 12.2
+# nova-compute package. It has been modified to run the canary process
+# instead of the nova-compute one.
+
+### BEGIN INIT INFO
+# Provides:          canary
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     3 5
+# Default-Stop:      0 1 2 6
+# Short-Description: OpenStack monitoring.
+# Description:       OpenStack monitoring.
+### END INIT INFO
+
+name="canary"
+USER="root"
+GROUP="root"
+LOGFILE="/var/log/nova/$name.log"
+CONFIGDIR="/etc/nova"
+
+[ -e "/etc/sysconfig/openstack-nova-$name" ] && . "/etc/sysconfig/openstack-nova-$name"
+
+DAEMON_OPTIONS="--config-dir=$CONFIGDIR --logfile=$LOGFILE"
+OPTIONS="${OPTIONS} $DAEMON_OPTIONS"
+
+# Shell functions sourced from /etc/rc.status:
+#      rc_check         check and set local and overall rc status
+#      rc_status        check and set local and overall rc status
+#      rc_status -v     be verbose in local rc status and clear it afterwards
+#      rc_status -v -r  ditto and clear both the local and overall rc status
+#      rc_status -s     display "skipped" and exit with status 3
+#      rc_status -u     display "unused" and exit with status 3
+#      rc_failed        set local and overall rc status to failed
+#      rc_failed <num>  set local and overall rc status to <num>
+#      rc_reset         clear both the local and overall rc status
+#      rc_exit          exit appropriate to overall rc status
+#      rc_active        checks whether a service is activated by symlinks
+. /etc/rc.status
+
+FULLNAME="OpenStack::canary server"
+
+case "$1" in
+    start)
+        echo -n "Starting $FULLNAME"
+        startproc -t ${STARTUP_TIMEOUT:-5} -q /usr/bin/$name $OPTIONS
+        rc_status -v
+        ;;
+    stop)
+        echo -n "Shutting down $FULLNAME"
+        killproc /usr/bin/$name
+        rc_status -v
+        ;;
+    restart)
+        $0 stop
+    $0 start
+    rc_status
+        ;;
+    reload)
+        ;;
+    status)
+        echo -n "Checking $FULLNAME"
+        /sbin/checkproc /usr/bin/$name
+        rc_status -v
+        ;;
+    condrestart|try-restart)
+        $0 restart
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|condrestart|try-restart}"
+        exit 2
+esac
+exit $?

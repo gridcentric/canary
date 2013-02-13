@@ -100,7 +100,7 @@ class Canary_extension(extensions.ExtensionDescriptor):
     name = "canary"
     alias = "canary"
     namespace = "http://docs.gridcentric.com/openstack/canary/api/v0"
-    updated = '2013-02-08T12:00:00-05:00'
+    updated = '2013-02-08T12:00:00-05:00' ## TIMESTAMP ##
 
     def get_resources(self):
         resources = [extensions.ResourceExtension('canary',

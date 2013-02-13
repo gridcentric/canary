@@ -17,20 +17,49 @@ import os
 import sys
 from distutils.core import setup
 
-setup(name='canary',
-      version='0.1',
-      description='Monitoring tools for Nova hosts.',
-      author='Gridcentric Inc.',
-      author_email='support@gridcentric.com',
-      url='http://www.gridcentric.com/',
-      packages=['canary'],
-      scripts=['bin/canary'],
-      data_files=[('/etc/init', ['etc/init/canary.conf'])])
+VERSION = os.environ.get("VERSION", '0.1')
+PACKAGE = os.environ.get("PACKAGE", None)
 
-setup(name='canary_python_novaclient_ext',
-      version='0.1',
-      description='Monitoring tools for Nova hosts.',
-      author='Gridcentric Inc.',
-      author_email='support@gridcentric.com',
-      url='http://www.gridcentric.com/',
-      packages=['canary_python_novaclient_ext'])
+if not(PACKAGE) or PACKAGE == "canary":
+    setup(name='canary',
+          version=VERSION,
+          description='Monitoring tools for Nova hosts.',
+          author='Gridcentric Inc.',
+          author_email='support@gridcentric.com',
+          url='http://www.gridcentric.com/',
+          packages=['canary'])
+
+if not(PACKAGE) or PACKAGE == "api":
+    setup(name='canary-api',
+          version=VERSION,
+          description='Monitoring tools for Nova hosts.',
+          author='Gridcentric Inc.',
+          author_email='support@gridcentric.com',
+          url='http://www.gridcentric.com/')
+
+if not(PACKAGE) or PACKAGE == "host":
+    setup(name='canary-host',
+          version=VERSION,
+          description='Monitoring tools for Nova hosts.',
+          author='Gridcentric Inc.',
+          author_email='support@gridcentric.com',
+          url='http://www.gridcentric.com/',
+          scripts=['bin/canary'],
+          data_files=[('/etc/init', ['etc/init/canary.conf'])])
+
+if not(PACKAGE) or PACKAGE == "novaclient":
+    setup(name='canary_python_novaclient_ext',
+          version=VERSION,
+          description='Monitoring tools for Nova hosts.',
+          author='Gridcentric Inc.',
+          author_email='support@gridcentric.com',
+          url='http://www.gridcentric.com/',
+          packages=['canary_python_novaclient_ext'])
+
+if not(PACKAGE) or PACKAGE == "horizon":
+    setup(name='canary-horizon',
+          version=VERSION,
+          description='Monitoring tools for Nova hosts.',
+          author='Gridcentric Inc.',
+          author_email='support@gridcentric.com',
+          url='http://www.gridcentric.com/')

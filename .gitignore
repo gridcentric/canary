@@ -8,3 +8,5 @@ dist/
 debbuild/
 rpmbuild/
 MANIFEST
+.project
+.pydevproject

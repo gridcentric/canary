@@ -28,7 +28,9 @@ if not(PACKAGE) or PACKAGE == "canary":
           author='Gridcentric Inc.',
           author_email='support@gridcentric.com',
           url='http://www.gridcentric.com/',
-          packages=['canary'])
+          packages=['canary', 'canary.horizon', 'canary.horizon.hosts'],
+          package_data={'canary.horizon': ['templates/canary/hosts/*.html',
+                                           'static/canary/hosts/*']})
 
 if not(PACKAGE) or PACKAGE == "api":
     setup(name='canary-api',

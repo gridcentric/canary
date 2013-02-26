@@ -19,6 +19,7 @@ from distutils.core import setup
 
 VERSION = os.environ.get("VERSION", '0.1')
 PACKAGE = os.environ.get("PACKAGE", None)
+DESTDIR = os.environ.get("DESTDIR", '')
 
 if not(PACKAGE) or PACKAGE == "canary":
     setup(name='canary',
@@ -45,7 +46,7 @@ if not(PACKAGE) or PACKAGE == "host":
           author_email='support@gridcentric.com',
           url='http://www.gridcentric.com/',
           scripts=['bin/canary'],
-          data_files=[('/etc/init', ['etc/init/canary.conf'])])
+          data_files=[('%s/etc/init' % DESTDIR, ['etc/init/canary.conf'])])
 
 if not(PACKAGE) or PACKAGE == "novaclient":
     setup(name='canary_python_novaclient_ext',

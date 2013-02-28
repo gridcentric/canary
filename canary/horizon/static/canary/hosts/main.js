@@ -1,10 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
-  // We need to dynamically load Flot after the page loads because jQuery is
-  // loaded at the end of the body
-  $('<script/>', {type: 'text/javascript',
-       src: '../../../static/canary/hosts/jquery.flot.min.js'})
-                                                       .appendTo($('head'));
-
+setupCanary = function() {
   var bytes = [[1, ' B'], [1024, ' KB'], [1048576, ' MB'],
       [1073741824, ' GB']];
 
@@ -155,7 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add initial graphs
     addMetric('load.load', 10, 'AVERAGE')
-    addMetric('memory.memory-free', 10, 'AVERAGE');
+    addMetric('memory.memory-used', 10, 'AVERAGE');
   });
 
   // Validate form whenever input is changed
@@ -188,4 +182,4 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
   });
-});
+}

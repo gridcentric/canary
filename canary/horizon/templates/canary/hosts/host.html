@@ -8,8 +8,7 @@
 {% endblock page_header %}
 
 {% block main %}
-  <link rel='stylesheet' type='text/css'
-                                  href='../../../static/canary/hosts/style.css'>
+  <link rel='stylesheet' type='text/css' href='{{ STATIC_URL }}canary/hosts/style.css'>
 
   <form class='form-inline' id='add-metric-form'>
     <select name='metric' id='metric-select' class='validated'>
@@ -41,5 +40,17 @@
     </div>
   </div>
 
-  <script type='text/javascript' src='../../../static/canary/hosts/main.js'></script>
+  <script type='text/javascript' src='{{ STATIC_URL }}canary/hosts/main.js'></script>
+
+  <script type='text/javascript'>
+    document.addEventListener('DOMContentLoaded', function() {
+      // We need to dynamically load Flot after the page loads because jQuery is
+      // loaded at the end of the body
+      $('<script/>', {type: 'text/javascript',
+           src: '{{ STATIC_URL }}canary/hosts/jquery.flot.min.js'})
+                                                           .appendTo($('head'));
+
+      setupCanary();
+    });
+  </script>
 {% endblock %}

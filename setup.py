@@ -15,6 +15,7 @@
 
 import os
 import sys
+import glob
 from distutils.core import setup
 
 VERSION = os.environ.get("VERSION", '0.1')
@@ -28,9 +29,7 @@ if not(PACKAGE) or PACKAGE == "canary":
           author='Gridcentric Inc.',
           author_email='support@gridcentric.com',
           url='http://www.gridcentric.com/',
-          packages=['canary', 'canary.horizon', 'canary.horizon.hosts'],
-          package_data={'canary.horizon': ['templates/canary/hosts/*.html',
-                                           'static/canary/hosts/*']})
+          packages=['canary'])
 
 if not(PACKAGE) or PACKAGE == "api":
     setup(name='canary-api',
@@ -65,4 +64,8 @@ if not(PACKAGE) or PACKAGE == "horizon":
           description='Monitoring tools for Nova hosts.',
           author='Gridcentric Inc.',
           author_email='support@gridcentric.com',
-          url='http://www.gridcentric.com/')
+          url='http://www.gridcentric.com/',
+          packages=['canary.horizon', 'canary.horizon.hosts'],
+          package_data={'canary.horizon': ['templates/canary/hosts/*.html']},
+          data_files=[("%s/usr/share/openstack-dashboard/static/canary/hosts" % DESTDIR,
+                      glob.glob('canary/horizon/static/canary/hosts/*'))])

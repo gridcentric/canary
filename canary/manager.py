@@ -29,7 +29,7 @@ FLAGS = flags.FLAGS
 
 canary_opts = [
                cfg.StrOpt('canary_rrdpath',
-               default='/var/lib/collectd/rrd/%s' % socket.getfqdn(),
+               default='/var/lib/collectd/rrd/',
                help='The path for available RRD files.'),
               ]
 FLAGS.register_opts(canary_opts)
@@ -39,10 +39,15 @@ class CanaryManager(manager.SchedulerDependentManager):
     def __init__(self, *args, **kwargs):
         super(CanaryManager, self).__init__(service_name="canary", *args, **kwargs)
 
-    def query(self, context, metric, cf='AVERAGE', from_time=None, to_time=None, resolution=None):
+    def query(self, context, metric, target=None, cf='AVERAGE', from_time=None, to_time=None, resolution=None):
         m = re.match("^([^\.\[]+)(\[([^\[]+)\])?\.(.+)$", metric)
         if not m:
             raise NotImplementedError()
+
+        # Figure out the target.
+        if target == None:
+            target = socket.getfqdn()
+        rrdpath = os.path.join(FLAGS.canary_rrdpath, target)
 
         # Find our RRD file.
         # NOTE: The deconstruction above is symmetric with the construction
@@ -52,9 +57,9 @@ class CanaryManager(manager.SchedulerDependentManager):
         unit = m.group(3)
         key = m.group(4)
         if unit:
-            filename = os.path.join(FLAGS.canary_rrdpath, '%s-%s' % (plugin, unit), '%s.rrd' % key)
+            filename = os.path.join(rrdpath, '%s-%s' % (plugin, unit), '%s.rrd' % key)
         else:
-            filename = os.path.join(FLAGS.canary_rrdpath, plugin, '%s.rrd' % key)
+            filename = os.path.join(rrdpath, plugin, '%s.rrd' % key)
 
         cmd = [filename, cf]
         if from_time:
@@ -72,12 +77,23 @@ class CanaryManager(manager.SchedulerDependentManager):
         values = [x[0] for x in data[2]]
         return zip(timestamps, values)
 
-    def info(self, context):
-        available = glob.glob(os.path.join(FLAGS.canary_rrdpath, '*/*.rrd'))
+    def info(self, context, target=None):
+        # Figure out the target.
+        if target == None:
+            target = socket.getfqdn()
+        rrdpath = os.path.join(FLAGS.canary_rrdpath, target)
+
+        # Grab available metrics.
+        available = glob.glob(os.path.join(rrdpath, '*/*.rrd'))
         metrics = { }
 
         for filename in available:
-            m = re.match("^%s/([^\/-]+)(-([^\/]+))?/([^\.]+)\.rrd$" % FLAGS.canary_rrdpath, filename)
+            # NOTE: Not sure quite why, but it seems like 
+            # the rrdtool commands below barf unless they 
+            # this happens -- maybe barfing on unicode?
+            filename = str(filename)
+
+            m = re.match("^%s/([^\/-]+)(-([^\/]+))?/([^\.]+)\.rrd$" % rrdpath, filename)
             if m:
                 plugin = m.group(1)
                 unit = m.group(3)

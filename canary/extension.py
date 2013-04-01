@@ -41,17 +41,25 @@ FLAGS.register_opts(canary_api_opts)
 class CanaryController(object):
 
     def index(self, req):
-    	context = req.environ['nova.context']
+        context = req.environ['nova.context']
         authorize(context)
-    	services = db.service_get_all(context, False)
-        hosts = []
-        for host in services:
-            if host["topic"] == FLAGS.canary_topic:
-        	hosts.append(host['host'])
+
+        hosts = {}
+
+        services = db.service_get_all(context, False)
+        for service in services:
+            if service['topic'] == FLAGS.canary_topic:
+                if service['host'] not in hosts:
+                    instances = db.instance_get_all_by_host(context, service['host'])
+                    instance_uuids = map(lambda x: x['uuid'], instances)
+                    hosts[service['host']] = instance_uuids
 
         return webob.Response(status_int=200, body=json.dumps(hosts))
 
     def query(self, req, id, body):
+        if not(id):
+            raise webob.exc.HTTPNotFound()
+
         context = req.environ["nova.context"]
         authorize(context)
 
@@ -60,13 +68,17 @@ class CanaryController(object):
 
         # Construct the query.
         kwargs = { 'method' : 'query', 'args' : args }
-        queue = rpc.queue_get_for(context, FLAGS.canary_topic, id)
-        if not(id) or not(queue):
-            raise webob.exc.HTTPNotFound(explanation=unicode(e))
+        parts = id.split(':', 1)
+        if len(parts) == 2:
+            instance = db.instance_get_by_uuid(context, parts[1])
+            kwargs['args']['target'] = instance['name']
+            queue = rpc.queue_get_for(context, FLAGS.canary_topic, parts[0])
+        else:
+            queue = rpc.queue_get_for(context, FLAGS.canary_topic, id)
 
         try:
             # Send it along.
-            result = rpc.call(context, FLAGS.canary_topic, kwargs)
+            result = rpc.call(context, queue, kwargs)
         except Exception, e:
             raise webob.exc.HTTPBadRequest(explanation=unicode(e))
 
@@ -74,14 +86,21 @@ class CanaryController(object):
         return webob.Response(status_int=200, body=json.dumps(result))
 
     def info(self, req, id):
+        if not(id):
+            raise webob.exc.HTTPNotFound()
+
         context = req.environ["nova.context"]
         authorize(context)
 
         # Construct the query.
         kwargs = { 'method' : 'info', 'args' : {} }
-        queue = rpc.queue_get_for(context, FLAGS.canary_topic, id)
-        if not(id) or not(queue):
-            raise webob.exc.HTTPNotFound(explanation=unicode(e))
+        parts = id.split(':', 1)
+        if len(parts) == 2:
+            instance = db.instance_get_by_uuid(context, parts[1])
+            kwargs['args']['target'] = instance['name']
+            queue = rpc.queue_get_for(context, FLAGS.canary_topic, parts[0])
+        else:
+            queue = rpc.queue_get_for(context, FLAGS.canary_topic, id)
 
         try:
             # Send it along.

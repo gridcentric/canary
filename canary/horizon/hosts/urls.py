@@ -14,8 +14,7 @@
 #    under the License.
 
 from django.conf.urls.defaults import patterns, url
-from .views import HostListView, HostView, host_data, host_metrics
-from canary.horizon.hosts.views import host_view
+from .views import HostListView, host_view, host_data, host_metrics
 
 urlpatterns = patterns('canary.horizon.hosts.views',
     url(r'^$', HostListView.as_view(), name='index'),

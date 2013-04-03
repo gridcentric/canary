@@ -28,10 +28,10 @@ setupCanary = function() {
       var max = 0;
 
       $.each(resp.data, function(i, pt) {
-        if(!(pt[4] == null)) {
-          data.push([pt[2] * 1000, pt[4]]);
-          if(pt[4] > max) {
-            max = pt[4];
+        if(!(pt[2] == null)) {
+          data.push([pt[0] * 1000, pt[2]]);
+          if(pt[2] > max) {
+            max = pt[2];
           }
         }
       });
@@ -104,12 +104,13 @@ setupCanary = function() {
       for(var i = 0; i < graphs.length; i++) {
         if(graphs[i] == graph) {
           graphs.splice(i, 1);
+          clearInterval(graph.timer);
         }
       }
     });
     graphs.push(graph);
     renderGraph(graph);
-    setInterval(function() {
+    graph.timer = setInterval(function() {
       renderGraph(graph);
     }, res * 1000);
   }

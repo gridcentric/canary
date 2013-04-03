@@ -47,3 +47,17 @@
     font-weight: bold;
     border: solid 2px black;
 }
+
+.graph-input {
+    width: 215px;
+    margin-right: 20px;
+}
+
+#metric-submit {
+    vertical-align: top;
+    margin-top: 30px;
+}
+
+.graph-input-line-holder {
+    display: inline-block;
+}

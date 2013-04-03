@@ -11,20 +11,31 @@
   <link rel='stylesheet' type='text/css' href='{{ STATIC_URL }}canary/hosts/style.css'>
 
   <form class='form-inline' id='add-metric-form'>
-    <select name='metric' id='metric-select' class='validated'>
-      <option value=''>Select metric...</option>
-    </select>
-    <label style='margin-left: 10px;'>
-      Cumulator:
-      <select name='cf' id='cf-select' class='span2' disabled>
-        <option value=''>Select cumulator...</option>
-      </select>
-    </label>
-    <label style='margin-left: 10px;'>
-      Timeframe (minutes):
-      <input type='text' name='timeframe' class='validated span1' value='10'
-                                                           id='timeframe-input'>
-    </label>
+    <div class='graph-input-line-holder'>
+      <div class='graph-input-line' style='margin-bottom: 17px;'>
+        <select name='metric' id='metric-select' class='validated graph-input'>
+          <option value=''>Select metric...</option>
+        </select>
+        <label class='graph-input'>
+          Cumulator:
+          <select name='cf' id='cf-select' class='span2' disabled>
+            <option value=''>Select cumulator...</option>
+          </select>
+        </label>
+      </div>
+      <div class='graph-input-line'>
+        <label class='graph-input'>
+          Timeframe (minutes):
+          <input type='text' name='timeframe' class='validated span1' value='10'
+                                                               id='timeframe-input'>
+        </label>
+        <label class='graph-input'>
+          Update (seconds):
+          <input type='text' name='update' class='validated span1' value='2'
+                                                                  id='update-input'>
+        </label>
+      </div>
+    </div>
     <button id='metric-submit' type='submit' class='btn' disabled>Add metric</button>
   </form>
 

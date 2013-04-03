@@ -91,12 +91,11 @@ setupCanary = function() {
   }
 
   // Add a metric to be graphed
-  function addMetric(metric, timeframe, cf) {
+  function addMetric(metric, timeframe, cf, res) {
     var container = $('#canary-templates .graph-container').clone();
     container.appendTo($('#graphs'));
     container.find('.metric-name').text(metric);
     var el = container.find('.graph');
-    var res = Math.ceil(timeframe * 60 / 400);
     var graph = {el: el, metric: metric, timeframe: timeframe,
                  resolution: res, cf: cf};
     container.find('.delete-graph').on('click', function() {
@@ -121,13 +120,17 @@ setupCanary = function() {
     var metric = $('#metric-select').val();
     var cf = $('#cf-select').val();
     var timeframe = parseInt($('#timeframe-input').val());
+    var res = parseInt($('#update-input').val());
     if(metric == '') {
       return false;
     }
     if(!(timeframe > 0)) {
       return false;
     }
-    return [metric, timeframe, cf];
+    if(!(res > 0)) {
+      return false;
+    }
+    return [metric, timeframe, cf, res];
   }
 
   // Latest data of each metric
@@ -149,8 +152,8 @@ setupCanary = function() {
     });
 
     // Add initial graphs
-    addMetric('load.load', 10, 'AVERAGE')
-    addMetric('memory.memory-used', 10, 'AVERAGE');
+    addMetric('load.load', 10, 'AVERAGE', 2)
+    addMetric('memory.memory-used', 10, 'AVERAGE', 2);
   });
 
   // Validate form whenever input is changed
@@ -162,10 +165,18 @@ setupCanary = function() {
     }
   });
 
+  // Update update interval when timeframe is updated
+  $('#timeframe-input').on('input change', function() {
+    data = validateMetricForm();
+    if(data) {
+      $('#update-input').val(Math.ceil(data[1] * 60 / 400));
+    }
+  });
+
   // Add metric upon form submission
   $('#add-metric-form').on('submit', function() {
     var data = validateMetricForm();
-    addMetric(data[0], data[1], data[2]);
+    addMetric(data[0], data[1], data[2], data[3]);
     return false;
   });
 

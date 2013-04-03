@@ -23,7 +23,7 @@ setupCanary = function() {
     $.get('./metrics/' + graph.metric + '/',
          {resolution: graph.resolution, from_time: from_time, cf: graph.cf},
                                                                 function(resp) {
-      var data = []
+      var data = [];
 
       var max = 0;
 

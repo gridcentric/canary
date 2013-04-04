@@ -15,18 +15,16 @@
 
 from django.utils.translation import ugettext_lazy as _
 
-import horizon
+from horizon import tables
 
-class CanaryPanels(horizon.PanelGroup):
-    slug = "canary"
-    name = _("Canary")
-    panels = ('hosts', 'instances')
+class InstanceTable(tables.DataTable):
+    host = tables.Column("host",
+                         verbose_name=_("Host"))
 
-class CanaryDashboard(horizon.Dashboard):
-    name = _("Canary")
-    slug = "canary"
-    panels = (CanaryPanels,)
-    default_panel = 'hosts'
-    permissions = ('openstack.roles.admin',)
+    instance_id = tables.Column("instance_id",
+                         link="horizon:canary:instances:show",
+                         verbose_name=_("Instance ID"))
 
-horizon.register(CanaryDashboard)
+    class Meta:
+        name = "instances"
+        verbose_name = _("Instances")

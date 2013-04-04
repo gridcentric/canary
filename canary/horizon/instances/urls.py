@@ -13,20 +13,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from django.utils.translation import ugettext_lazy as _
+from django.conf.urls.defaults import patterns, url
+from .views import InstanceListView
+from ..hosts.views import host_view, host_data, host_metrics
 
-import horizon
-
-class CanaryPanels(horizon.PanelGroup):
-    slug = "canary"
-    name = _("Canary")
-    panels = ('hosts', 'instances')
-
-class CanaryDashboard(horizon.Dashboard):
-    name = _("Canary")
-    slug = "canary"
-    panels = (CanaryPanels,)
-    default_panel = 'hosts'
-    permissions = ('openstack.roles.admin',)
-
-horizon.register(CanaryDashboard)
+urlpatterns = patterns('canary.horizon.hosts.views',
+    url(r'^$', InstanceListView.as_view(), name='index'),
+    url(r'^(?P<host>[^/]+)/$', host_view, name='show'),
+    url(r'^(?P<host>[^/]+)/metrics/(?P<metric>[^/]+)/$', host_data, name='data'),
+    url(r'^(?P<host>[^/]+)/metrics/$', host_metrics, name='metrics'),
+)

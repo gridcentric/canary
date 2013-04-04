@@ -18,7 +18,7 @@ from .views import HostListView, host_view, host_data, host_metrics
 
 urlpatterns = patterns('canary.horizon.hosts.views',
     url(r'^$', HostListView.as_view(), name='index'),
-    url(r'^hosts/(?P<host>[^/]+)/$', host_view, name='show'),
-    url(r'^hosts/(?P<host>[^/]+)/metrics/(?P<metric>[^/]+)/$', host_data, name='data'),
-    url(r'^hosts/(?P<host>[^/]+)/metrics/$', host_metrics, name='metrics'),
+    url(r'^(?P<host>[^/]+)/$', host_view, name='show'),
+    url(r'^(?P<host>[^/]+)/metrics/(?P<metric>[^/]+)/$', host_data, name='data'),
+    url(r'^(?P<host>[^/]+)/metrics/$', host_metrics, name='metrics'),
 )

@@ -6,7 +6,7 @@ setupCanary = function() {
   // units defined in the second item are used.
   units = [
     ['memory', bytes],
-    ['cpu', [[1, '%']]],
+    ['cpu[', [[1, '%']]],
     ['df', bytes],
     ['swap', bytes],
   ];
@@ -16,9 +16,9 @@ setupCanary = function() {
 
   // Fetch new data and display it in the graph
   function renderGraph(graph) {
-    var to_time = to_times[graph.metric];
+    var toTime = toTimes[graph.metric];
 
-    var from_time = to_time - graph.timeframe * 60;
+    var from_time = toTime - graph.timeframe * 60;
 
     $.get('./metrics/' + graph.metric + '/',
          {resolution: graph.resolution, from_time: from_time, cf: graph.cf},
@@ -41,11 +41,11 @@ setupCanary = function() {
         return;
       }
 
-      to_time = data[data.length - 1][0] / 1000;
+      toTime = data[data.length - 1][0] / 1000;
 
-      from_time = to_time - graph.timeframe * 60;
+      from_time = toTime - graph.timeframe * 60;
 
-      to_times[graph.metric] = to_time;
+      toTimes[graph.metric] = toTime;
 
       for(var i = 0; i < data.length; i++) {
         if(data[i][0] < from_time * 1000) {
@@ -92,6 +92,9 @@ setupCanary = function() {
 
   // Add a metric to be graphed
   function addMetric(metric, timeframe, cf, res) {
+    if($.inArray(metric, metricNames) == -1) {
+      return;
+    }
     var container = $('#canary-templates .graph-container').clone();
     container.appendTo($('#graphs'));
     container.find('.metric-name').text(metric);
@@ -133,22 +136,24 @@ setupCanary = function() {
     return [metric, timeframe, cf, res];
   }
 
+  var metricNames = [];
+
   // Latest data of each metric
-  var to_times = {};
+  var toTimes = {};
 
   // Cumulator functions available for each metric
   var cfs = {};
 
-  // Fetch list of metrics and populate form, to_times, and cfs
+  // Fetch list of metrics and populate form, toTimes, and cfs
   $.get('./metrics/', function(data) {
     $.each(data.metrics.sort(), function(index, metric) {
       var name = metric[0];
-      var to_time = metric[1];
-      var metric_cfs = metric[2];
-      $('<option/>', {value: name, text: name})
-                                             .appendTo($('#metric-select'));
-      to_times[name] = to_time;
-      cfs[name] = metric_cfs.sort();
+      var toTime = metric[1];
+      var metricCfs = metric[2];
+      $('<option/>', {value: name, text: name}).appendTo($('#metric-select'));
+      metricNames.push(name);
+      toTimes[name] = toTime;
+      cfs[name] = metricCfs.sort();
     });
 
     // Add initial graphs

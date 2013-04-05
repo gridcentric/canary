@@ -65,7 +65,7 @@ if (not(PACKAGE) or PACKAGE == "horizon") and os.path.exists("canary"):
           author='Gridcentric Inc.',
           author_email='support@gridcentric.com',
           url='http://www.gridcentric.com/',
-          packages=['canary.horizon', 'canary.horizon.hosts'],
-          package_data={'canary.horizon': ['templates/canary/hosts/*.html']},
-          data_files=[("%s/usr/share/openstack-dashboard/static/canary/hosts" % DESTDIR,
-                      glob.glob('canary/horizon/static/canary/hosts/*'))])
+          packages=['canary.horizon', 'canary.horizon.hosts', 'canary.horizon.instances'],
+          package_data={'canary.horizon': ['templates/canary/*.html']},
+          data_files=[("%s/usr/share/openstack-dashboard/static/canary" % DESTDIR,
+                      glob.glob('canary/horizon/static/canary/*'))])

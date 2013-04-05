@@ -15,18 +15,21 @@
 
 from django.utils.translation import ugettext_lazy as _
 
-import horizon
+from .. import api
+from horizon import exceptions
+from horizon import tables
+from .tables import InstanceTable
 
-class CanaryPanels(horizon.PanelGroup):
-    slug = "canary"
-    name = _("Canary")
-    panels = ('hosts', 'instances')
+class InstanceListView(tables.DataTableView):
+    table_class = InstanceTable
+    template_name = 'canary/instance-list.html'
 
-class CanaryDashboard(horizon.Dashboard):
-    name = _("Canary")
-    slug = "canary"
-    panels = (CanaryPanels,)
-    default_panel = 'hosts'
-    permissions = ('openstack.roles.admin',)
+    def has_more_data(self, table):
+        return False
 
-horizon.register(CanaryDashboard)
+    def get_data(self):
+        try:
+            return api.instance_list(self.request)
+        except:
+            msg = _('Unable to retrieve instance list.')
+            exceptions.handle(self.request, msg)

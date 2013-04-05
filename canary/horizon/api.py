@@ -43,9 +43,20 @@ class Host(object):
         self.id = name
         self.name = name
 
+class Instance(object):
+
+    def __init__(self, host, instance_id):
+        self.id = '{}:{}'.format(host, instance_id)
+        self.host = host
+        self.instance_id = instance_id
+
 def host_list(request):
     return [Host(host.host_name) for host in novaclient(request).canary.list()
             if not hasattr(host, 'instance_id') or host.instance_id is None]
+
+def instance_list(request):
+    return [Instance(host.host_name, host.instance_id) for host in novaclient(request).canary.list()
+            if hasattr(host, 'instance_id') and host.instance_id is not None]
 
 def host_data(request, host, metric, **kwargs):
     client = novaclient(request)

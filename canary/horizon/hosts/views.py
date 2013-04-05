@@ -15,19 +15,18 @@
 
 from django.utils.translation import ugettext_lazy as _
 
-from canary.horizon import api
+from .. import api
 from horizon import exceptions
 from horizon import tables
 from .tables import HostsTable
 
-from django.views import generic
 from django.http import HttpResponse
 import json
 from django.shortcuts import render
 
 class HostListView(tables.DataTableView):
     table_class = HostsTable
-    template_name = 'canary/hosts/index.html'
+    template_name = 'canary/host-list.html'
 
     def has_more_data(self, table):
         return False
@@ -39,11 +38,8 @@ class HostListView(tables.DataTableView):
             msg = _('Unable to retrieve host list.')
             exceptions.handle(self.request, msg)
 
-class HostView(generic.TemplateView):
-    template_name = 'canary/hosts/host.html'
-
 def host_view(request, host):
-    return render(request, 'canary/hosts/host.html', {'host': host})
+    return render(request, 'canary/host.html', {'host': host.split(':')[-1]})
 
 def host_data(request, host, metric):
     params = {'from_time': int, 'to_time': int, 'cf': str, 'resolution': int}

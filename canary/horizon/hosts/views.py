@@ -19,6 +19,7 @@ from .. import api
 from horizon import exceptions
 from horizon import tables
 from .tables import HostsTable
+from ..api import novaclient
 
 from django.http import HttpResponse
 import json
@@ -39,7 +40,11 @@ class HostListView(tables.DataTableView):
             exceptions.handle(self.request, msg)
 
 def host_view(request, host):
-    return render(request, 'canary/host.html', {'host': host.split(':')[-1]})
+    if ':' in host:
+        title = novaclient(request).servers.get(host.split(':')[-1]).name
+    else:
+        title = host
+    return render(request, 'canary/graphs.html', {'title': title})
 
 def host_data(request, host, metric):
     params = {'from_time': int, 'to_time': int, 'cf': str, 'resolution': int}

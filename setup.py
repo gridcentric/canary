@@ -40,7 +40,7 @@ if (not(PACKAGE) or PACKAGE == "api") and os.path.exists("canary"):
           url='http://www.gridcentric.com/')
 
 if (not(PACKAGE) or PACKAGE == "host") and os.path.exists("canary"):
-   setup(name='canary-host',
+    setup(name='canary-host',
           version=VERSION,
           description='Monitoring tools for Nova hosts.',
           author='Gridcentric Inc.',

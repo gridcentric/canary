@@ -18,12 +18,12 @@ from django.utils.translation import ugettext_lazy as _
 from horizon import tables
 
 class InstanceTable(tables.DataTable):
+    name = tables.Column("name",
+                         link="horizon:canary:instances:show",
+                         verbose_name=_("Name"))
+
     host = tables.Column("host",
                          verbose_name=_("Host"))
-
-    instance_id = tables.Column("instance_id",
-                         link="horizon:canary:instances:show",
-                         verbose_name=_("Instance ID"))
 
     class Meta:
         name = "instances"

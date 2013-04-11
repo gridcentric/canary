@@ -45,17 +45,21 @@ class Host(object):
 
 class Instance(object):
 
-    def __init__(self, host, instance_id):
+    def __init__(self, host, instance_id, name):
         self.id = '{}:{}'.format(host, instance_id)
         self.host = host
         self.instance_id = instance_id
+        self.name = name
 
 def host_list(request):
     return [Host(host.host_name) for host in novaclient(request).canary.list()
             if not hasattr(host, 'instance_id') or host.instance_id is None]
 
 def instance_list(request):
-    return [Instance(host.host_name, host.instance_id) for host in novaclient(request).canary.list()
+    client = novaclient(request)
+    instance_names = dict([(server.id, server.name) for server in client.servers.list()])
+    return [Instance(host.host_name, host.instance_id, instance_names.get(host.instance_id, host.instance_id))
+            for host in client.canary.list()
             if hasattr(host, 'instance_id') and host.instance_id is not None]
 
 def host_data(request, host, metric, **kwargs):

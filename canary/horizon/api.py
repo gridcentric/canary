@@ -45,11 +45,12 @@ class Host(object):
 
 class Instance(object):
 
-    def __init__(self, host, instance_id, name):
+    def __init__(self, host, instance_id, name, tenant_name):
         self.id = '{}:{}'.format(host, instance_id)
         self.host = host
         self.instance_id = instance_id
         self.name = name
+        self.tenant_name = tenant_name
 
 def host_list(request):
     return [Host(host.host_name) for host in novaclient(request).canary.list()
@@ -57,10 +58,13 @@ def host_list(request):
 
 def instance_list(request):
     client = novaclient(request)
-    instance_names = dict([(server.id, server.name) for server in client.servers.list()])
-    return [Instance(host.host_name, host.instance_id, instance_names.get(host.instance_id, host.instance_id))
-            for host in client.canary.list()
-            if hasattr(host, 'instance_id') and host.instance_id is not None]
+    instances = dict([(server.id, server) for server in client.servers.list(True, {'all_tenants': True})])
+    tenants = dict([(tenant.id, tenant) for tenant in api.keystone.tenant_list(request, admin=True)])
+    return [Instance(instance.host_name, instance.instance_id,
+                          instances[instance.instance_id].name,
+                          tenants[instances[instance.instance_id].tenant_id].name)
+            for instance in client.canary.list()
+            if hasattr(instance, 'instance_id') and instance.instance_id is not None]
 
 def host_data(request, host, metric, **kwargs):
     client = novaclient(request)

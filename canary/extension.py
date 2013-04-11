@@ -104,7 +104,7 @@ class CanaryController(object):
 
         try:
             # Send it along.
-            result = rpc.call(context, FLAGS.canary_topic, kwargs)
+            result = rpc.call(context, queue, kwargs)
         except Exception, e:
             raise webob.exc.HTTPBadRequest(explanation=unicode(e))
 

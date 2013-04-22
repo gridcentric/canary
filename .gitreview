@@ -2,4 +2,4 @@
 host=reviews.gridcentric.ca
 port=29418
 project=canary
-defaultbranch=master
+defaultbranch=stable/folsom

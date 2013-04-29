@@ -34,18 +34,20 @@ canary_opts = [
               ]
 FLAGS.register_opts(canary_opts)
 
+
 class CanaryManager(manager.SchedulerDependentManager):
-
     def __init__(self, *args, **kwargs):
-        super(CanaryManager, self).__init__(service_name="canary", *args, **kwargs)
+        super(CanaryManager, self).__init__(service_name="canary", *args,
+                                            **kwargs)
 
-    def query(self, context, metric, target=None, cf='AVERAGE', from_time=None, to_time=None, resolution=None):
+    def query(self, context, metric, target=None, cf='AVERAGE',
+              from_time=None, to_time=None, resolution=None):
         m = re.match("^([^\.\[]+)(\[([^\[]+)\])?\.(.+)$", metric)
         if not m:
             raise NotImplementedError()
 
         # Figure out the target.
-        if target == None:
+        if target is None:
             target = socket.getfqdn()
         rrdpath = os.path.join(FLAGS.canary_rrdpath, target)
 
@@ -57,7 +59,8 @@ class CanaryManager(manager.SchedulerDependentManager):
         unit = m.group(3)
         key = m.group(4)
         if unit:
-            filename = os.path.join(rrdpath, '%s-%s' % (plugin, unit), '%s.rrd' % key)
+            filename = os.path.join(rrdpath, '%s-%s' % (plugin, unit),
+                                    '%s.rrd' % key)
         else:
             filename = os.path.join(rrdpath, plugin, '%s.rrd' % key)
 
@@ -79,28 +82,29 @@ class CanaryManager(manager.SchedulerDependentManager):
 
     def info(self, context, target=None):
         # Figure out the target.
-        if target == None:
+        if target is None:
             target = socket.getfqdn()
         rrdpath = os.path.join(FLAGS.canary_rrdpath, target)
 
         # Grab available metrics.
         available = glob.glob(os.path.join(rrdpath, '*/*.rrd'))
-        metrics = { }
+        metrics = {}
 
         for filename in available:
-            # NOTE: Not sure quite why, but it seems like 
-            # the rrdtool commands below barf unless they 
+            # NOTE: Not sure quite why, but it seems like
+            # the rrdtool commands below barf unless they
             # this happens -- maybe barfing on unicode?
             filename = str(filename)
 
-            m = re.match("^%s/([^\/-]+)(-([^\/]+))?/([^\.]+)\.rrd$" % rrdpath, filename)
+            m = re.match("^%s/([^\/-]+)(-([^\/]+))?/([^\.]+)\.rrd$" % rrdpath,
+                         filename)
             if m:
                 plugin = m.group(1)
                 unit = m.group(3)
                 key = m.group(4)
 
                 # NOTE: At this point we construct a metric name that is
-                # equivilant to how we deconstruct the name above. It's 
+                # equivilant to how we deconstruct the name above. It's
                 # important that these two operations are symmetric for
                 # the sake of a user's sanity.
                 if unit:
@@ -117,7 +121,7 @@ class CanaryManager(manager.SchedulerDependentManager):
                 pdps = []
                 cfs = []
                 for (k, v) in rrdtool.info(filename).items():
-                    if re.match("^step$",k):
+                    if re.match("^step$", k):
                         step = int(v)
                         continue
                     elif re.match("^rra\[\d+\]\.pdp_per_row$", k):

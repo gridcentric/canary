@@ -50,7 +50,8 @@ class CanaryController(object):
         for service in services:
             if service['topic'] == FLAGS.canary_topic:
                 if service['host'] not in hosts:
-                    instances = db.instance_get_all_by_host(context, service['host'])
+                    instances = db.instance_get_all_by_host(context,
+                                                            service['host'])
                     instance_uuids = map(lambda x: x['uuid'], instances)
                     hosts[service['host']] = instance_uuids
 
@@ -67,7 +68,7 @@ class CanaryController(object):
         args = body.get('args', {})
 
         # Construct the query.
-        kwargs = { 'method' : 'query', 'args' : args }
+        kwargs = {'method': 'query', 'args': args}
         parts = id.split(':', 1)
         if len(parts) == 2:
             instance = db.instance_get_by_uuid(context, parts[1])
@@ -93,7 +94,7 @@ class CanaryController(object):
         authorize(context)
 
         # Construct the query.
-        kwargs = { 'method' : 'info', 'args' : {} }
+        kwargs = {'method': 'info', 'args': {}}
         parts = id.split(':', 1)
         if len(parts) == 2:
             instance = db.instance_get_by_uuid(context, parts[1])
@@ -111,6 +112,7 @@ class CanaryController(object):
         # Send the result.
         return webob.Response(status_int=200, body=json.dumps(result))
 
+
 class Canary_extension(extensions.ExtensionDescriptor):
     """
     Extension for monitoring hosts.
@@ -122,7 +124,9 @@ class Canary_extension(extensions.ExtensionDescriptor):
     updated = '2013-02-08T12:00:00-05:00' ## TIMESTAMP ##
 
     def get_resources(self):
-        resources = [extensions.ResourceExtension('canary',
+        resources = [
+            extensions.ResourceExtension(
+                'canary',
                 CanaryController(),
                 collection_actions={},
                 member_actions={"query": "POST", "info": "GET"})]

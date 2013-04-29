@@ -24,18 +24,18 @@ import eventlet
 eventlet.monkey_patch()
 gettext.install('canary', unicode=1)
 
-from nova import flags
-from nova import service
+from oslo.config import cfg
+from nova import config, service
 from nova.openstack.common import log as logging
-from nova.openstack.common import cfg
+
+CONF = cfg.CONF
 
 if __name__ == '__main__':
-    flags.parse_args(sys.argv)
-    canary_opts = [
-               cfg.StrOpt('canary_manager',
-               default='canary.manager.CanaryManager',
-               help='Manager for canary') ]
-    flags.FLAGS.register_opts(canary_opts)
+    config.parse_args(sys.argv)
+    canary_opts = [cfg.StrOpt('canary_manager',
+                              default='canary.manager.CanaryManager',
+                              help='Manager for canary')]
+    CONF.register_opts(canary_opts)
 
     logging.setup('canary')
     server = service.Service.create(binary='canary')

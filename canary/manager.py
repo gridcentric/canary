@@ -19,20 +19,17 @@ import glob
 import os
 import rrdtool
 
-from nova import flags
-from nova.openstack.common import cfg
+from oslo.config import cfg
 from nova.openstack.common import log as logging
 from nova import manager
 
 LOG = logging.getLogger(__name__)
-FLAGS = flags.FLAGS
+CONF = cfg.CONF
 
-canary_opts = [
-               cfg.StrOpt('canary_rrdpath',
-               default='/var/lib/collectd/rrd/',
-               help='The path for available RRD files.'),
-              ]
-FLAGS.register_opts(canary_opts)
+canary_opts = [cfg.StrOpt('canary_rrdpath',
+                          default='/var/lib/collectd/rrd/',
+                          help='The path for available RRD files.')]
+CONF.register_opts(canary_opts)
 
 
 class CanaryManager(manager.SchedulerDependentManager):
@@ -49,7 +46,7 @@ class CanaryManager(manager.SchedulerDependentManager):
         # Figure out the target.
         if target is None:
             target = socket.getfqdn()
-        rrdpath = os.path.join(FLAGS.canary_rrdpath, target)
+        rrdpath = os.path.join(CONF.canary_rrdpath, target)
 
         # Find our RRD file.
         # NOTE: The deconstruction above is symmetric with the construction
@@ -84,7 +81,7 @@ class CanaryManager(manager.SchedulerDependentManager):
         # Figure out the target.
         if target is None:
             target = socket.getfqdn()
-        rrdpath = os.path.join(FLAGS.canary_rrdpath, target)
+        rrdpath = os.path.join(CONF.canary_rrdpath, target)
 
         # Grab available metrics.
         available = glob.glob(os.path.join(rrdpath, '*/*.rrd'))

@@ -16,10 +16,9 @@
 import json
 import webob
 
-from nova import flags
+from oslo.config import cfg
 from nova import db
 from nova.exception import NovaException
-from nova.openstack.common import cfg
 from nova.openstack.common import log as logging
 from nova.openstack.common import rpc
 from nova.api.openstack import extensions
@@ -30,13 +29,13 @@ LOG = logging.getLogger(__name__)
 # NOTE: We use the same authorization as the standard os-hosts
 # extension. This is because we need we same level of privelege.
 authorize = extensions.extension_authorizer('compute', 'hosts')
-FLAGS = flags.FLAGS
+CONF = cfg.CONF
 
-canary_api_opts = [
-               cfg.StrOpt('canary_topic',
-               default='canary',
-               help='the topic canary nodes listen on') ]
-FLAGS.register_opts(canary_api_opts)
+canary_api_opts = [cfg.StrOpt('canary_topic',
+                              default='canary',
+                              help='the topic canary nodes listen on')]
+CONF.register_opts(canary_api_opts)
+
 
 class CanaryController(object):
 
@@ -48,7 +47,7 @@ class CanaryController(object):
 
         services = db.service_get_all(context, False)
         for service in services:
-            if service['topic'] == FLAGS.canary_topic:
+            if service['topic'] == CONF.canary_topic:
                 if service['host'] not in hosts:
                     instances = db.instance_get_all_by_host(context,
                                                             service['host'])
@@ -73,9 +72,9 @@ class CanaryController(object):
         if len(parts) == 2:
             instance = db.instance_get_by_uuid(context, parts[1])
             kwargs['args']['target'] = instance['name']
-            queue = rpc.queue_get_for(context, FLAGS.canary_topic, parts[0])
+            queue = rpc.queue_get_for(context, CONF.canary_topic, parts[0])
         else:
-            queue = rpc.queue_get_for(context, FLAGS.canary_topic, id)
+            queue = rpc.queue_get_for(context, CONF.canary_topic, id)
 
         try:
             # Send it along.
@@ -99,9 +98,9 @@ class CanaryController(object):
         if len(parts) == 2:
             instance = db.instance_get_by_uuid(context, parts[1])
             kwargs['args']['target'] = instance['name']
-            queue = rpc.queue_get_for(context, FLAGS.canary_topic, parts[0])
+            queue = rpc.queue_get_for(context, CONF.canary_topic, parts[0])
         else:
-            queue = rpc.queue_get_for(context, FLAGS.canary_topic, id)
+            queue = rpc.queue_get_for(context, CONF.canary_topic, id)
 
         try:
             # Send it along.
@@ -111,6 +110,7 @@ class CanaryController(object):
 
         # Send the result.
         return webob.Response(status_int=200, body=json.dumps(result))
+
 
 
 class Canary_extension(extensions.ExtensionDescriptor):

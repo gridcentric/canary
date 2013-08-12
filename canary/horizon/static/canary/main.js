@@ -1,4 +1,7 @@
-setupCanary = function() {
+setupCanary = function( optionalBaseUrl, optionalCallback ) {
+  baseUrl = (typeof optionalBaseUrl === "undefined") ? "." : optionalBaseUrl
+  // optionalCallback has no parameters
+
   var bytes = [[1, ' B'], [1024, ' KB'], [1048576, ' MB'],
       [1073741824, ' GB']];
 
@@ -20,7 +23,7 @@ setupCanary = function() {
 
     var from_time = toTime - graph.timeframe * 60;
 
-    $.get('./metrics/' + graph.metric + '/',
+    $.get(baseUrl + '/metrics/' + graph.metric + '/',
          {resolution: graph.resolution, from_time: from_time, cf: graph.cf},
                                                                 function(resp) {
       var data = [];
@@ -145,7 +148,7 @@ setupCanary = function() {
   var cfs = {};
 
   // Fetch list of metrics and populate form, toTimes, and cfs
-  $.get('./metrics/', function(data) {
+  $.get(baseUrl + '/metrics/', function(data) {
     $.each(data.metrics.sort(), function(index, metric) {
       var name = metric[0];
       var toTime = metric[1];
@@ -159,6 +162,7 @@ setupCanary = function() {
     // Add initial graphs
     addMetric('load.load', 10, 'AVERAGE', 2)
     addMetric('memory.memory-used', 10, 'AVERAGE', 2);
+    if (typeof optionalCallback === "function") optionalCallback();
   });
 
   // Validate form whenever input is changed
@@ -199,4 +203,7 @@ setupCanary = function() {
       });
     }
   });
+
+  // Manage Exports
+  this.canaryAddMetric = addMetric;
 }

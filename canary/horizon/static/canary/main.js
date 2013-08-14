@@ -17,8 +17,12 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
   // List of currently active graphs
   var graphs = [];
 
-  // Fetch new data and display it in the graph
-  function renderGraph(graph) {
+  /* Fetch new data and display it in the graph
+   *
+   * Optional parameters:
+   *   boolean thumbnail  -  compact display, with no axis
+   */
+  function renderGraph(graph, opts) {
     var toTime = toTimes[graph.metric];
 
     var from_time = toTime - graph.timeframe * 60;
@@ -57,7 +61,6 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
       }
 
       var unit = null;
-
       $.each(units, function(i, u) {
         if(graph.metric.indexOf(u[0]) != -1) {
           unit = u;
@@ -65,7 +68,6 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
       });
 
       var level = null;
-
       if(unit) {
         $.each(unit[1], function(i, l) {
           if(max > l[0] || level == null) {
@@ -75,7 +77,6 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
       }
 
       var yaxis = {};
-
       if(level) {
         $.each(data, function(i) {
           data[i][1] /= level[0];
@@ -86,15 +87,26 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
         }
       }
 
-      $.plot(graph.el, [data],
+      var popts =
         {xaxis: {mode: 'time', min: from_time * 1000},
          yaxis: yaxis,
-         colors: ['#145E8D']});
+         colors: ['#145E8D'],
+         };
+
+      if (opts && opts['thumbnail']) {
+        popts.yaxis.show=false;
+        popts.xaxis.show=false;
+
+        // remove border, cleaner look (caller can add it through html instead)
+        popts.grid = { borderWidth:0 }
+      }
+
+      $.plot(graph.el, [data], popts );
     });
-  }
+ }
 
   // Add a metric to be graphed
-  function addMetric(metric, timeframe, cf, res) {
+  function addMetric(metric, timeframe, cf, res, render_opts) {
     if($.inArray(metric, metricNames) == -1) {
       return;
     }
@@ -114,9 +126,9 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
       }
     });
     graphs.push(graph);
-    renderGraph(graph);
+    renderGraph(graph, render_opts);
     graph.timer = setInterval(function() {
-      renderGraph(graph);
+      renderGraph(graph, render_opts);
     }, res * 1000);
   }
 

@@ -20,7 +20,8 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
   /* Fetch new data and display it in the graph
    *
    * Optional parameters:
-   *   boolean thumbnail  -  compact display, with no axis
+   *  opts:
+   *    thumbnail        (boolean) render minimal graph (no axis, no border)
    */
   function renderGraph(graph, opts) {
     var toTime = toTimes[graph.metric];
@@ -105,19 +106,37 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
     });
  }
 
-  // Add a metric to be graphed
+  /* Add a metric to be graphed
+   *
+   * Optional parameters:
+   *  render_opts:
+   *    target_container  (string) instead of dynamically adding new graph obj,
+   *                      render to this static target
+   *    thumbnail         (boolean) render a minimal feature graph
+   *
+   */
   function addMetric(metric, timeframe, cf, res, render_opts) {
     if($.inArray(metric, metricNames) == -1) {
       return;
     }
-    var container = $('#canary-templates .graph-container').clone();
-    container.appendTo($('#graphs'));
+    if (render_opts && render_opts['target_container']) {
+        var container = $(render_opts['target_container']);
+    } else {
+        var container = $('#canary-templates .graph-container').clone();
+        container.appendTo($('#graphs'));
+    }
     container.find('.metric-name').text(metric);
     var el = container.find('.graph');
     var graph = {el: el, metric: metric, timeframe: timeframe,
                  resolution: res, cf: cf};
-    container.find('.delete-graph').on('click', function() {
-      container.remove();
+
+    // replace previous click event handler
+    container.find('.delete-graph').off('click').on('click', function() {
+      // If delete button hidden, shouldn't do anything
+      // Functions can trigger click event though to stop updating graph
+      if ( $(this).is(":visible") ) {
+          container.remove();
+      }
       for(var i = 0; i < graphs.length; i++) {
         if(graphs[i] == graph) {
           graphs.splice(i, 1);

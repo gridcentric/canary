@@ -237,4 +237,5 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
 
   // Manage Exports
   this.canaryAddMetric = addMetric;
+  this.canaryMetricNames = metricNames;
 }

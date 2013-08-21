@@ -13,14 +13,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from django.utils.translation import ugettext_lazy as _
-
-from canary.horizon import dashboard
 import horizon
+
+from django.utils.translation import ugettext_lazy as _
 
 class Hosts(horizon.Panel):
     name = _("Hosts")
-    slug = 'hosts'
+    slug = 'canary_hosts'
     permissions = ('openstack.roles.admin',)
-
-dashboard.CanaryDashboard.register(Hosts)

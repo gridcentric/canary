@@ -62,3 +62,47 @@
 .graph-input-line-holder {
     display: inline-block;
 }
+
+.metric-name {
+    display: none;
+}
+
+.metric-display-name {
+    display: inline;
+}
+
+.thumbnail .graph {
+    width: 168px;
+    height: 72px;
+    cursor: pointer;
+}
+
+.thumbnail .graph-placeholder {
+    width: 168px;
+    height: 42px;
+    padding-top: 20px;
+}
+
+.hihover:hover {
+    background-color: #FFFFCC;
+}
+
+.main-graph .graph {
+    width: 780px;
+    height: 269px;
+    cursor: auto;
+    border: none;
+}
+
+.main-graph .graph-placeholder {
+    width: 780px;
+    height: 150px;
+    padding-top: 130px;
+}
+
+.main-graph .delete-graph {
+    display: none;
+}
+
+.selected {
+    background-color: #FFFACD;

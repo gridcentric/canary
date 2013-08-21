@@ -13,17 +13,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from django.utils.translation import ugettext_lazy as _
+import json
+import re
 
-from .. import api
+from django.utils.translation import ugettext_lazy as _
+from django.http import HttpResponse
+from django.shortcuts import render
 from horizon import exceptions
 from horizon import tables
-from .tables import HostsTable
-from ..api import novaclient
+from horizon import conf
 
-from django.http import HttpResponse
-import json
-from django.shortcuts import render
+from .. import api
+from ..api import novaclient
+from .tables import HostsTable
 
 class HostListView(tables.DataTableView):
     table_class = HostsTable
@@ -40,11 +42,22 @@ class HostListView(tables.DataTableView):
             exceptions.handle(self.request, msg)
 
 def host_view(request, host):
+    metrics = []
+    if 'metrics' in request.GET:
+        metrics = ["^%s$" % re.escape(x).replace("\\*", ".*") if '*' in x else x
+                   for x in str(request.GET['metrics']).split(',')]
+
     if ':' in host:
         title = novaclient(request).servers.get(host.split(':')[-1]).name
+        if not metrics:
+            # set default metrics in /etc/openstack-dashboard/local_settings.py
+            metrics = conf.HORIZON_CONFIG["canary_default_vm_metrics"]
     else:
         title = host
-    return render(request, 'canary/graphs.html', {'title': title})
+        if not metrics:
+            metrics = conf.HORIZON_CONFIG["canary_default_host_metrics"]
+    return render(request, 'canary/graphs.html', {'title': title,
+                                                  'initial_metrics': metrics})
 
 def host_data(request, host, metric):
     params = {'from_time': int, 'to_time': int, 'cf': str, 'resolution': int}

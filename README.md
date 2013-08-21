@@ -76,3 +76,12 @@ To enable the Canary dashboard in Horizon, modify
 
 Then, restart the web server with `service apache2 restart` and navigate to
 Horizon. There will be a new dashboard labeled "Canary".
+
+Also add your default instance and host metrics to
+`/etc/openstack-dashboard/local_settings.py`. For example:
+
+    HORIZON_CONFIG["canary_default_vm_metrics"] = ['libvirt*']
+    HORIZON_CONFIG["canary_default_host_metrics"] = ['load.load', \
+                                              'memory.memory-used', \
+                                              'df.df-root', \
+                                              'interface.if_octets-br100']

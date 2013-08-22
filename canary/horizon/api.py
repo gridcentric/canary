@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from openstack_dashboard.api import nova as api
+from openstack_dashboard.api import nova as api, keystone as keystone
 
 from novaclient import shell
 from novaclient.v1_1 import client
@@ -59,7 +59,7 @@ def host_list(request):
 def instance_list(request):
     client = novaclient(request)
     instances = dict([(server.id, server) for server in client.servers.list(True, {'all_tenants': True})])
-    tenants = dict([(tenant.id, tenant) for tenant in api.keystone.tenant_list(request, admin=True)])
+    tenants = dict([(tenant.id, tenant) for tenant in keystone.tenant_list(request, admin=True)])
     return [Instance(instance.host_name, instance.instance_id,
                           instances[instance.instance_id].name,
                           tenants[instances[instance.instance_id].tenant_id].name)

@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from horizon import api
+from openstack_dashboard.api import nova as api
 
 from novaclient import shell
 from novaclient.v1_1 import client

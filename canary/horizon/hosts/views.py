@@ -27,6 +27,17 @@ from .. import api
 from ..api import novaclient
 from .tables import HostsTable
 
+DEFAULT_VM_METRICS = [
+    'libvirt*',
+]
+
+DEFAULT_HOST_METRICS = [
+    'load.load',
+    'memory.memory-used',
+    'df.df-root',
+    'interface.if_octets-br100',
+]
+
 class HostListView(tables.DataTableView):
     table_class = HostsTable
     template_name = 'canary/host-list.html'
@@ -50,12 +61,13 @@ def host_view(request, host):
     if ':' in host:
         title = novaclient(request).servers.get(host.split(':')[-1]).name
         if not metrics:
-            # set default metrics in /etc/openstack-dashboard/local_settings.py
-            metrics = conf.HORIZON_CONFIG["canary_default_vm_metrics"]
+            metrics = conf.HORIZON_CONFIG.get('canary_default_vm_metrics',
+                                              DEFAULT_VM_METRICS)
     else:
         title = host
         if not metrics:
-            metrics = conf.HORIZON_CONFIG["canary_default_host_metrics"]
+            metrics = conf.HORIZON_CONFIG.get('canary_default_host_metrics',
+                                              DEFAULT_HOST_METRICS)
     return render(request, 'canary/graphs.html', {'title': title,
                                                   'initial_metrics': metrics})
 

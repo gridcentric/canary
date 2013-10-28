@@ -14,7 +14,6 @@
 #    under the License.
 
 from django.utils.translation import ugettext_lazy as _
-
 from horizon import tables
 
 class InstanceTable(tables.DataTable):
@@ -25,7 +24,7 @@ class InstanceTable(tables.DataTable):
                          verbose_name=_("Host"))
 
     name = tables.Column("name",
-                         link="horizon:canary:instances:show",
+                         link="horizon:admin:canary_instances:show",
                          verbose_name=_("Name"))
 
     class Meta:

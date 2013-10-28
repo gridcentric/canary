@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from horizon import api
+import openstack_dashboard.api as api
 
 from novaclient import shell
 from novaclient.v1_1 import client
@@ -23,18 +23,18 @@ from novaclient.v1_1 import client
 # support loading extensions. We will attempt to fix this upstream,
 # but in the meantime it is necessary to have this functionality here.
 def novaclient(request):
-    insecure = getattr(api.settings, 'OPENSTACK_SSL_NO_VERIFY', False)
-    api.LOG.debug('novaclient connection created using token "%s" and url "%s"' %
-                  (request.user.token.id, api.url_for(request, 'compute')))
+    insecure = getattr(api.nova.settings, 'OPENSTACK_SSL_NO_VERIFY', False)
+    api.nova.LOG.debug('novaclient connection created using token "%s" and url "%s"' %
+                  (request.user.token.id, api.nova.url_for(request, 'compute')))
     extensions = shell.OpenStackComputeShell()._discover_extensions("1.1")
     c = client.Client(request.user.username,
                       request.user.token.id,
                       extensions=extensions,
                       project_id=request.user.tenant_id,
-                      auth_url=api.url_for(request, 'compute'),
+                      auth_url=api.nova.url_for(request, 'compute'),
                       insecure=insecure)
     c.client.auth_token = request.user.token.id
-    c.client.management_url = api.url_for(request, 'compute')
+    c.client.management_url = api.nova.url_for(request, 'compute')
     return c
 
 class Host(object):

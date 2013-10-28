@@ -14,12 +14,11 @@
 #    under the License.
 
 from django.utils.translation import ugettext_lazy as _
-
 from horizon import tables
 
 class HostsTable(tables.DataTable):
     name = tables.Column("name",
-                         link="horizon:canary:hosts:show",
+                         link="horizon:admin:canary_hosts:show",
                          verbose_name=_("Name"))
 
     class Meta:

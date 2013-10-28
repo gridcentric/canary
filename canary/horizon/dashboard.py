@@ -13,20 +13,22 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from django.utils.translation import ugettext_lazy as _
-
 import horizon
+
+from django.utils.translation import ugettext_lazy as _
+from hosts.panel import Hosts
+from instances.panel import Instances
+from openstack_dashboard.dashboards.admin import dashboard
+
+from . import tables
 
 class CanaryPanels(horizon.PanelGroup):
     slug = "canary"
-    name = _("Canary")
-    panels = ('hosts', 'instances')
+    name = _("Canary Statistics")
+    panels = ('canary_hosts', 'canary_instances',)
 
-class CanaryDashboard(horizon.Dashboard):
-    name = _("Canary")
-    slug = "canary"
-    panels = (CanaryPanels,)
-    default_panel = 'hosts'
-    permissions = ('openstack.roles.admin',)
-
-horizon.register(CanaryDashboard)
+# Must be listed explicitly; autodiscovery of panels only works for dashboards
+dashboard.Admin.panels += (CanaryPanels,)
+dashboard.Admin.register(Instances)
+dashboard.Admin.register(Hosts)
+tables.patch()

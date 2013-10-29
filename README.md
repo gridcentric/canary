@@ -42,6 +42,14 @@ uncommenting the following lines:
         DataDir "/var/lib/collectd/rrd"
     </Plugin>
 
+For instance monitoring, you will need to enable the libvirt plugin. You may do
+this by uncommenting the following lines in `/etc/collectd/collectd.conf`:
+
+    LoadPlugin libvirt
+
+You can also enable the libvirt plugin by installing the
+[vms-collectd-plugins](https://github.com/gridcentric/vms-collectd-plugins).
+
 Setting up the service
 ----------------------
 

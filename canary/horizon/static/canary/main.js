@@ -2,18 +2,6 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
   baseUrl = (typeof optionalBaseUrl === "undefined") ? "." : optionalBaseUrl
   // optionalCallback has no parameters
 
-  var bytes = [[1, ' B'], [1024, ' KB'], [1048576, ' MB'],
-      [1073741824, ' GB']];
-
-  // List of unit formatters: If the first item is a substring of a metric, the
-  // units defined in the second item are used.
-  units = [
-    ['memory', bytes],
-    ['cpu[', [[1, '%']]],
-    ['df', bytes],
-    ['swap', bytes],
-  ];
-
   // List of currently active graphs
   var graphs = [];
 

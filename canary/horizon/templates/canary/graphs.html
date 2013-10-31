@@ -12,10 +12,23 @@
 
   <div class='well'><form class='form-inline' id='add-metric-form'>
     <div class='graph-input-line-holder'>
+
       <div class='graph-input-line' style='margin-bottom: 17px;'>
-        <select name='metric' id='metric-select' class='validated graph-input'>
-          <option value=''>Select metric...</option>
-        </select>
+        <label class='graph-input'>
+          Select metric:
+          <select name='metric' id='metric-select' class='validated graph-input'>
+            <option value=''>...</option>
+          </select>
+        </label>
+        <label class='graph-input'>
+          Select comparison metric:
+          <select name='metric' id='metric-select-second' class='validated graph-input'>
+            <option value=''>...</option>
+          </select>
+        </label>
+      </div>
+
+      <div class='graph-input-line' style='margin-bottom: 17px;'>
         <label class='graph-input'>
           Cumulator:
           <select name='cf' id='cf-select' class='span2' disabled>
@@ -23,6 +36,7 @@
           </select>
         </label>
       </div>
+
       <div class='graph-input-line'>
         <label class='graph-input'>
           Timeframe (minutes):
@@ -35,6 +49,7 @@
                                                                   id='update-input'>
         </label>
       </div>
+
     </div>
     <button id='metric-submit' type='submit' class='btn' disabled>Add metric</button>
   </form></div>

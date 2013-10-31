@@ -20,6 +20,6 @@ from ..hosts.views import host_view, host_data, host_metrics
 urlpatterns = patterns('canary.horizon.hosts.views',
     url(r'^$', InstanceListView.as_view(), name='index'),
     url(r'^(?P<host>[^/]+)/$', host_view, name='show'),
-    url(r'^(?P<host>[^/]+)/metrics/(?P<metric>[^/]+)/$', host_data, name='data'),
-    url(r'^(?P<host>[^/]+)/metrics/$', host_metrics, name='metrics'),
+    url(r'^(?P<host>[^/]+)/metrics/$', host_data, name='data'),
+    url(r'^(?P<host>[^/]+)/metrics/all/$', host_metrics, name='metrics'),
 )

@@ -13,17 +13,22 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
    */
   function renderGraph(graph, opts) {
     var toTime = toTimes[graph.metric];
-
     var from_time = toTime - graph.timeframe * 60;
 
-    $.get(baseUrl + '/metrics/' + graph.metric + '/',
-         {resolution: graph.resolution, from_time: from_time, cf: graph.cf},
-                                                                function(resp) {
+    var metrics = graph.metric;
+    if( graph.second_metric ) {
+      metrics = metrics + ',' + graph.second_metric;
+    }
+
+    $.get(baseUrl + '/metrics/',
+         {resolution: graph.resolution, from_time: from_time,
+          cf: graph.cf, metrics: metrics},
+         function(resp) {
       var data = [];
 
       var max = 0;
 
-      $.each(resp.data, function(i, pt) {
+      $.each(resp[graph.metric], function(i, pt) {
         if(!(pt[2] == null)) {
           data.push([pt[0] * 1000, pt[2]]);
           if(pt[2] > max) {
@@ -31,6 +36,18 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
           }
         }
       });
+
+      if( graph.second_metric ) {
+        var data2 = [];
+        $.each(resp[graph.second_metric], function(i, pt) {
+          if(!(pt[2] == null)) {
+            data2.push([pt[0] * 1000, pt[2]]);
+            if(pt[2] > max) {
+              max = pt[2];
+            }
+          }
+        });
+      }
 
       if(data.length == 0) {
         graph.el.html('<p class="graph-placeholder">No data</p>');
@@ -49,12 +66,34 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
         }
       }
 
+      if( graph.second_metric ) {
+        for(var i = 0; i < data2.length; i++) {
+          if(data2[i][0] < from_time * 1000) {
+            data2.splice(i, 1);
+          }
+        }
+      }
+
       var unit = null;
       $.each(units, function(i, u) {
         if(graph.metric.indexOf(u[0]) != -1) {
           unit = u;
         }
       });
+
+      if( graph.second_metric ) {
+        var unit2 = null;
+        $.each(units, function(i, u) {
+          if(graph.second_metric.indexOf(u[0]) != -1) {
+            unit2 = u;
+          }
+        });
+
+        if( unit[0] != unit2[0] ) {
+          graph.el.html('<p class="graph-placeholder">Please select two metrics with the same unit.</p>');
+          return;
+        }
+      }
 
       var level = null;
       if(unit) {
@@ -71,6 +110,12 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
           data[i][1] /= level[0];
         });
 
+        if( graph.second_metric ) {
+          $.each(data2, function(i) {
+            data2[i][1] /= level[0];
+          });
+        }
+
         yaxis.tickFormatter = function(v, axis) {
           return v.toFixed(2) + level[1];
         }
@@ -79,8 +124,13 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
       var popts =
         {xaxis: {mode: 'time', min: from_time * 1000},
          yaxis: yaxis,
-         colors: ['#145E8D'],
+         colors: ['#0057A1', '#85BE54'],
          };
+
+      if( graph.second_metric ) {
+        var metric1 = { data: data, label: graph.metric, };
+        var metric2 = { data: data2, label: graph.second_metric, };
+      }
 
       if (opts && opts['thumbnail']) {
         popts.yaxis.show=false;
@@ -88,9 +138,18 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
 
         // remove border, cleaner look (caller can add it through html instead)
         popts.grid = { borderWidth:0 }
+        if( graph.second_metric ) {
+          metric1.label = null;
+          metric2.label = null;
+        }
       }
 
-      $.plot(graph.el, [data], popts );
+      if( graph.second_metric ) {
+        $.plot(graph.el, [metric1, metric2], popts );
+      }
+      else {
+        $.plot(graph.el, [data], popts );
+      }
     });
  }
 
@@ -101,6 +160,7 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
    *    target_container  (string) instead of dynamically adding new graph obj,
    *                      render to this static target
    *    thumbnail         (boolean) render a minimal feature graph
+   *    second_metric     (string) optional second metric to graph
    *
    */
   function addMetric(metric, timeframe, cf, res, render_opts) {
@@ -115,9 +175,12 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
     }
     container.find('.metric-name').text(metric);
     container.find('.metric-display-name').text(metric);
+    if(render_opts && render_opts['second_metric']) {
+      var second_metric = render_opts['second_metric'];
+    }
     var el = container.find('.graph');
     var graph = {el: el, metric: metric, timeframe: timeframe,
-                 resolution: res, cf: cf};
+                 resolution: res, cf: cf, second_metric: second_metric};
     container.data("graph",graph);
 
     // replace previous click event handler
@@ -167,6 +230,7 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
   // valid. Used to determine if submit button should be disabled.
   function validateMetricForm() {
     var metric = $('#metric-select').val();
+    var second_metric = $('#metric-select-second').val();
     var cf = $('#cf-select').val();
     var timeframe = parseInt($('#timeframe-input').val());
     var res = parseInt($('#update-input').val());
@@ -179,7 +243,7 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
     if(!(res > 0)) {
       return false;
     }
-    return [metric, timeframe, cf, res];
+    return [metric, timeframe, cf, res, second_metric];
   }
 
   var metricNames = [];
@@ -191,12 +255,13 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
   var cfs = {};
 
   // Fetch list of metrics and populate form, toTimes, and cfs
-  $.get(baseUrl + '/metrics/', function(data) {
+  $.get(baseUrl + '/metrics/all/', function(data) {
     $.each(data.metrics.sort(), function(index, metric) {
       var name = metric[0];
       var toTime = metric[1];
       var metricCfs = metric[2];
       $('<option/>', {value: name, text: name}).appendTo($('#metric-select'));
+      $('<option/>', {value: name, text: name}).appendTo($('#metric-select-second'));
       metricNames.push(name);
       toTimes[name] = toTime;
       cfs[name] = metricCfs.sort();
@@ -225,7 +290,8 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
   // Add metric upon form submission
   $('#add-metric-form').on('submit', function() {
     var data = validateMetricForm();
-    addMetric(data[0], data[1], data[2], data[3], {'thumbnail':true});
+    addMetric(data[0], data[1], data[2], data[3],
+              {'thumbnail':true, 'second_metric':data[4]});
 
     return false;
   });
@@ -253,7 +319,8 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
 
         if (graph) {
             addMetric(graph.metric, graph.timeframe, graph.cf, graph.resolution,
-                {"target_container":'.main-graph.graph-container'});
+                {"target_container":'.main-graph.graph-container',
+                 "second_metric":graph.second_metric});
         } else {
             $(".main-graph .graph").html('<p class="graph-placeholder">No metric selected</p>');
             $(".main-graph .metric-display-name").html("");

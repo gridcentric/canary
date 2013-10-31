@@ -71,14 +71,28 @@ def host_view(request, host):
     return render(request, 'canary/graphs.html', {'title': title,
                                                   'initial_metrics': metrics})
 
-def host_data(request, host, metric):
+def host_data(request, host):
+    # Separate the metrics from the query.
+    if request.GET.get('metrics'):
+        metrics = [x for x in str(request.GET['metrics']).split(',')]
+    else:
+        msg = "Please provide a query string appended to the url, \
+               e.g. ?metrics=foo.bar"
+        return HttpResponse(msg, content_type='text/plain')
+
+    # Parse the rest of the query.
     params = {'from_time': int, 'to_time': int, 'cf': str, 'resolution': int}
     kwargs = {}
     for param, func in params.items():
         if param in request.GET:
             kwargs[param] = func(request.GET[param])
-    data = api.host_data(request, host, metric, **kwargs)
-    return HttpResponse(json.dumps({'data': data}),
+
+    metric_data = {}
+    for metric in metrics:
+        data = api.host_data(request, host, metric, **kwargs)
+        metric_data[metric] = data
+
+    return HttpResponse(json.dumps(metric_data),
                         content_type='application/json')
 
 def host_metrics(request, host):

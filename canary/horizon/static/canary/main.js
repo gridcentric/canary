@@ -89,7 +89,7 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
           }
         });
 
-        if( unit[0] != unit2[0] ) {
+        if( unit != null && unit2 != null && unit[1] != unit2[1] ) {
           graph.el.html('<p class="graph-placeholder">Please select two metrics with the same unit.</p>');
           return;
         }

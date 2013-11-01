@@ -24,8 +24,10 @@ units = [
     ['if_errors', count],
     ['if_octets', bytes],
     ['if_packets', count],
+    ['irq', count],
     ['memory', bytes],
     ['processes', count],
+    ['swap', bytes],
     ['users', count],
     ['virt_cpu', count],
 ];

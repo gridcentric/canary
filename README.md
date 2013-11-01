@@ -98,3 +98,11 @@ Also add your default instance and host metrics to
         'df.df-root',
         'interface.if_octets-br100',
     ]
+
+The default graph timeframe and update frequency values are 2 minutes and 2
+seconds, respectively. Add the following lines to
+`etc/openstack-dashboard/local_settings.py` to change these values, for example:
+
+    HORIZON_CONFIG['canary_default_timeframe'] = 10
+
+    HORIZON_CONFIG['canary_default_update'] = 5

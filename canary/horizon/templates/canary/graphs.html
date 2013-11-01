@@ -111,7 +111,8 @@
     });
 
     var add_thumbnail = function(metric) {
-        canaryAddMetric(metric, 2, 'AVERAGE', 2, {'thumbnail':true});
+        canaryAddMetric(metric, {{ timeframe }}, 'AVERAGE',
+                        {{ update }}, {'thumbnail':true});
     }
 
  </script>

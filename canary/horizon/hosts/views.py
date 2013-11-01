@@ -68,8 +68,12 @@ def host_view(request, host):
         if not metrics:
             metrics = conf.HORIZON_CONFIG.get('canary_default_host_metrics',
                                               DEFAULT_HOST_METRICS)
+    tf = conf.HORIZON_CONFIG.get('canary_default_timeframe', 2)
+    update = conf.HORIZON_CONFIG.get('canary_default_update', 2)
     return render(request, 'canary/graphs.html', {'title': title,
-                                                  'initial_metrics': metrics})
+                                                  'initial_metrics': metrics,
+                                                  'timeframe': tf,
+                                                  'update': update})
 
 def host_data(request, host):
     # Separate the metrics from the query.

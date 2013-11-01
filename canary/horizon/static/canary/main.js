@@ -153,6 +153,16 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
     });
  }
 
+  /* Extract the metric group name - for naming graphs that compare 2+ metrics
+   *
+   * e.g. metric = cpu[0].cpu-idle, group = cpu
+   */
+  function extractMetricGroup(name) {
+    name = name.split(".")[0];
+    name = name.split("[")[0];
+    return name;
+  }
+
   /* Add a metric to be graphed
    *
    * Optional parameters:
@@ -173,11 +183,23 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
         var container = $('#canary-templates .graph-container').clone();
         container.appendTo($('#graphs'));
     }
-    container.find('.metric-name').text(metric);
-    container.find('.metric-display-name').text(metric);
+
+    var metric_name = metric;
+
     if(render_opts && render_opts['second_metric']) {
       var second_metric = render_opts['second_metric'];
+
+      // find the topic of the metrics, e.g. cpu, disk, etc.
+      metric_name = extractMetricGroup(metric);
+      var second_name = extractMetricGroup(second_metric);
+
+      if( metric_name != second_name ) {
+        metric_name = metric_name + " and " + second_name;
+      }
     }
+
+    container.find('.metric-name').text(metric_name);
+    container.find('.metric-display-name').text(metric_name);
     var el = container.find('.graph');
     var graph = {el: el, metric: metric, timeframe: timeframe,
                  resolution: res, cf: cf, second_metric: second_metric};

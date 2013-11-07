@@ -31,6 +31,18 @@ canary_opts = [cfg.StrOpt('canary_rrdpath',
                           help='The path for available RRD files.')]
 CONF.register_opts(canary_opts)
 
+# For consistency between collectd and canary, we should mimic the method
+# collectd uses to get the hostname for the rrd path (when FQDNLookup=True).
+def canary_find_hostname():
+    name = socket.gethostname()
+
+    results = socket.getaddrinfo(name, None, 0, 0, 0, socket.AI_CANONNAME)
+    for res in results:
+        if res[3]:
+            name = res[3]
+            break
+
+    return name
 
 class CanaryManager(manager.SchedulerDependentManager):
     def __init__(self, *args, **kwargs):
@@ -45,7 +57,7 @@ class CanaryManager(manager.SchedulerDependentManager):
 
         # Figure out the target.
         if target is None:
-            target = socket.getfqdn()
+            target = canary_find_hostname()
         rrdpath = os.path.join(CONF.canary_rrdpath, target)
 
         # Find our RRD file.
@@ -80,7 +92,7 @@ class CanaryManager(manager.SchedulerDependentManager):
     def info(self, context, target=None):
         # Figure out the target.
         if target is None:
-            target = socket.getfqdn()
+            target = canary_find_hostname()
         rrdpath = os.path.join(CONF.canary_rrdpath, target)
 
         # Grab available metrics.

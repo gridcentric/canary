@@ -10,7 +10,40 @@
 {% block main %}
   <link rel='stylesheet' type='text/css' href='{{ STATIC_URL }}canary/style.css'>
 
-  <div class='well'><form class='form-inline' id='add-metric-form'>
+  <div id='graphs'>
+    <div class='graph-container main-graph'>
+      <div class='graph-header'>
+        <h4 class='metric-name'></h4>
+        <h4 class='metric-display-name'></h4>
+        <a class='delete-graph'>&times;</a>
+      </div>
+      <div class='graph'>
+          <p class='graph-placeholder'>Loading...</p>
+      </div>
+    </div>
+
+    <div id='canary-templates' style="display: none;">
+      <div class='graph-container thumbnail hihover'>
+      <div class='graph'>
+          <p class='graph-placeholder'>Loading...</p>
+      </div>
+      <div class='graph-header'>
+        <h4 class='metric-name'></h4>
+        <h4 class='metric-display-name'></h4>
+        <div class='delete-graph'>&times;</div>
+        <h4 class='metric-value'></h4>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Collapse form -->
+  <div id='toggle-ctr' style='margin-bottom: 15px;'>
+    <a id='toggle-form' style='text-size: 13px;'>more...</a>
+  </div>
+
+  <!-- Form -->
+  <div class='well' style='display:none'><form class='form-inline' id='add-metric-form'>
     <div class='graph-input-line-holder'>
 
       <div class='graph-input-line' style='margin-bottom: 17px;'>
@@ -53,32 +86,7 @@
     </div>
     <button id='metric-submit' type='submit' class='btn' disabled>Add metric</button>
   </form></div>
-
-  <div id='graphs'>
-      <div class='graph-container main-graph'>
-      <div class='graph-header'>
-        <h4 class='metric-name'></h4>
-        <h4 class='metric-display-name'></h4>
-        <a class='delete-graph'>&times;</a>
-      </div>
-      <div class='graph'>
-          <p class='graph-placeholder'>Loading...</p>
-      </div>
-  </div>
-
-  <div id='canary-templates' style="display: none;">
-      <div class='graph-container thumbnail hihover'>
-      <div class='graph'>
-          <p class='graph-placeholder'>Loading...</p>
-      </div>
-      <div class='graph-header'>
-        <h4 class='metric-name'></h4>
-        <h4 class='metric-display-name'></h4>
-        <div class='delete-graph'>&times;</div>
-        <h4 class='metric-value'></h4>
-      </div>
-    </div>
-  </div>
+  <br>
 
   <script type='text/javascript' src='{{ STATIC_URL }}canary/main.js'></script>
   <script type='text/javascript' src='{{ STATIC_URL }}canary/metric_name_map.js'></script>

@@ -292,6 +292,11 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
     if (typeof optionalCallback === "function") optionalCallback();
   });
 
+  // Collapse and expand form on click
+  $('#toggle-form').click(function() {
+    $('.well').slideToggle();
+  });
+
   // Validate form whenever input is changed
   $('#add-metric-form .validated').on('input change', function() {
     if(validateMetricForm()) {

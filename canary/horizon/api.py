@@ -17,6 +17,7 @@ import openstack_dashboard.api as api
 
 from novaclient import shell
 from novaclient.v1_1 import client
+from openstack_dashboard.api import base
 
 # NOTE: We have to reimplement this function here (although it is
 # impemented in the API module above). The base module does not currently
@@ -25,16 +26,16 @@ from novaclient.v1_1 import client
 def novaclient(request):
     insecure = getattr(api.nova.settings, 'OPENSTACK_SSL_NO_VERIFY', False)
     api.nova.LOG.debug('novaclient connection created using token "%s" and url "%s"' %
-                  (request.user.token.id, api.nova.url_for(request, 'compute')))
+                  (request.user.token.id, base.url_for(request, 'compute')))
     extensions = shell.OpenStackComputeShell()._discover_extensions("1.1")
     c = client.Client(request.user.username,
                       request.user.token.id,
                       extensions=extensions,
                       project_id=request.user.tenant_id,
-                      auth_url=api.nova.url_for(request, 'compute'),
+                      auth_url=base.url_for(request, 'compute'),
                       insecure=insecure)
     c.client.auth_token = request.user.token.id
-    c.client.management_url = api.nova.url_for(request, 'compute')
+    c.client.management_url = base.url_for(request, 'compute')
     return c
 
 class Host(object):
@@ -59,7 +60,13 @@ def host_list(request):
 def instance_list(request):
     client = novaclient(request)
     instances = dict([(server.id, server) for server in client.servers.list(True, {'all_tenants': True})])
-    tenants = dict([(tenant.id, tenant) for tenant in api.keystone.tenant_list(request, admin=True)])
+
+    # Keystone tenant_list returns a tuple (tenants, has_more_data). Since we
+    # don't call tenant_list with any additional opts, we don't have to worry
+    # about the condition when has_more_data == True. Just grab the tenants.
+    tenant_list, _ = api.keystone.tenant_list(request)
+    tenants = dict([(tenant.id, tenant) for tenant in tenant_list])
+
     return [Instance(instance.host_name, instance.instance_id,
                           instances[instance.instance_id].name,
                           tenants[instances[instance.instance_id].tenant_id].name)

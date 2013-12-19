@@ -54,9 +54,8 @@ class HostListView(tables.DataTableView):
 
 def host_view(request, host):
     metrics = []
-    if 'metrics' in request.GET:
-        metrics = ["^%s$" % re.escape(x).replace("\\*", ".*") if '*' in x else x
-                   for x in str(request.GET['metrics']).split(',')]
+    # check for metrics in the query string, format ?graph1=a.a&graph2=b.b,c.c&
+    metrics = [str(request.GET[x]) for x in request.GET if x.startswith("graph")]
 
     if ':' in host:
         title = novaclient(request).servers.get(host.split(':')[-1]).name

@@ -227,6 +227,7 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
         if(graphs[i] == graph) {
           graphs.splice(i, 1);
           clearInterval(graph.timer);
+          updateURL(graphs);
         }
       }
     });
@@ -246,6 +247,7 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
     }, res * 1000);
 
     updateMetricNames();
+    updateURL(graphs);
   }
 
   // Return false if form is currently invalid, and return the form data if
@@ -381,6 +383,29 @@ setupCanary = function( optionalBaseUrl, optionalCallback ) {
         });
     }
 
+    var updateURL = function(graph_list) {
+        var newURL = "?";
+        var inURL = [];
+        var endchar = "&";
+        for( var i=0; i < graph_list.length; i++ ) {
+            var prefix = newURL + "graph" + i + "=";
+
+            if( $.inArray(graph_list[i], inURL) == -1 ) {
+                if( graph_list[i].el.selector.indexOf("main-graph") != -1 ) {
+                    // do nothing, otherwise we add the main graph metric twice
+                } else if( graph_list[i].second_metric ) {
+                    var new_metrics = graph_list[i].metric + "," + graph_list[i].second_metric;
+                    newURL = prefix + new_metrics + endchar;
+                } else {
+                    var new_metric = graph_list[i].metric
+                    newURL = prefix + new_metric + endchar;
+                }
+
+                inURL.push(graph_list[i]);
+            }
+        }
+        window.history.replaceState( {}, "", newURL );
+    }
 
   // Manage Exports
   this.canaryAddMetric = addMetric;

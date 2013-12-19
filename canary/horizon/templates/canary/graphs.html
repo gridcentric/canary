@@ -101,15 +101,33 @@
 
       setupCanary(undefined, function() {
          if (canaryMetricNames.length) {
-             $.each({{ initial_metrics|safe }}, function(i, v) {
-                 if (v.indexOf('*') != -1) {
-                    $.each(canaryMetricNames, function (i2, v2) {
-                        if (v2.match(new RegExp(v)))
-                            add_thumbnail(v2);
+             $.each({{ initial_metrics|safe }}, function(index, metric) {
+
+                 // graph = two metrics "a.a,b.*", one has format "plugin.*".
+                 // This notation means to query all the metrics of a plugin
+                 // group. Currently, we only support graphing 2 metrics on one
+                 // graph, therefore we cannot graph all of the metrics in a
+                 // metric group on one graph. Default to graph the first metric.
+                 if (metric.indexOf(',') != -1 && metric.indexOf('*') != -1) {
+                    var metric1 = metric.split(',')[0];
+                    add_thumbnail(metric1);
+                 // graph = two metrics "a.a,b.b"
+                 } else if (metric.indexOf(',') != -1) {
+                    var metrics = metric.split(',');
+                    canaryAddMetric(metrics[0], {{ timeframe }}, 'AVERAGE',
+                                    {{ update }}, {'thumbnail':true,
+                                                   'second_metric':metrics[1]})
+                 // graph = one metric "a.*"
+                 } else if (metric.indexOf('*') != -1) {
+                    $.each(canaryMetricNames, function (j, k) {
+                        if (k.match(new RegExp(metric)))
+                            add_thumbnail(k);
                     });
+                // graph = one metric "a.a"
                 } else {
-                    add_thumbnail(v);
+                    add_thumbnail(metric);
                 }
+
              });
          } else {
              $(".main-graph .graph-placeholder").text(
